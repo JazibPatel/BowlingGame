@@ -9,10 +9,14 @@ public class ball : MonoBehaviour
     private Vector2 endTouchPosition;
     private Rigidbody rb;
     private bool hasHit = false;
+    public AudioClip ballSound;
+    public AudioClip pinSound;
+    private AudioSource audioSource;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -60,20 +64,38 @@ public class ball : MonoBehaviour
             // Add some left/right curve based on swipe X
             Vector3 forceDirection = forward + (Vector3.right * (swipeDirection.x / 200f));
 
+            if (ballSound != null && audioSource != null)
+                audioSource.PlayOneShot(ballSound);
 
             rb.AddForce(forceDirection.normalized * forceMultiplier, ForceMode.Impulse);
+            
         }
     }
 
     // Detect collision with pin
     private void OnCollisionEnter(Collision collision)
     {
-        if (!hasHit && collision.gameObject.CompareTag("pin"))
-        {
-            hasHit = true;
-            Debug.Log("Ball hit a pin! Waiting 2 sec before switching...");
+        if (!hasHit) {
 
-            StartCoroutine(WaitAndEndTurn());
+            if (collision.collider.CompareTag("pin"))
+            {
+                hasHit = true;
+                if (pinSound != null && audioSource != null)
+                {
+                    audioSource.PlayOneShot(pinSound);
+                }
+                Debug.Log("Hit to pins");
+                StartCoroutine(WaitAndEndTurn());
+            }
+            else
+            {
+                if (collision.collider.CompareTag("channel"))
+                {
+                    hasHit = true;
+                    Debug.Log("Hit to channel");
+                    StartCoroutine(WaitAndEndTurn());
+                }
+            }
         }
     }
 

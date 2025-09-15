@@ -6,6 +6,7 @@ TagManager:
   tags:
   - pin
   - lane
+  - channel
   layers:
   - Default
   - TransparentFX

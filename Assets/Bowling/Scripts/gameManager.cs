@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 public class gameManager : MonoBehaviour
@@ -12,8 +13,7 @@ public class gameManager : MonoBehaviour
 
     [Header("Spawn Points")]
     public Transform ballSpawn;
-    public Transform[] pinSpawns;   // 10 pin spawn points
-    public Transform cameraTransform;
+    public Transform[] pinSpawns; // 10 pin spawn points
 
     [Header("Background")]
     public Transform backgroundTransform;
@@ -26,6 +26,10 @@ public class gameManager : MonoBehaviour
     public Material player1BallMaterial;
     public Material player2BallMaterial;
 
+    private Camera camMain;
+    private bool cameraFlip;
+    public int cameraFlipCount = 0;
+
     void Awake()
     {
         Instance = this;
@@ -33,6 +37,7 @@ public class gameManager : MonoBehaviour
 
     void Start()
     {
+        camMain = Camera.main;
         SpawnBallAndPins();
     }
 
@@ -50,38 +55,41 @@ public class gameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
 
-        // Flip camera 180
-        Quaternion targetRot = cameraTransform.rotation * Quaternion.Euler(0, 0, 180);
-        Vector3 scale = backgroundTransform.localScale;
-        scale.x *= -1;  // horizontal flip
-        scale.y *= -1;  // vertical flip if needed
-
-        float t = 0f;
-        while (t < 1f)
+        if (!cameraFlip)
         {
-            t += Time.deltaTime;
-            cameraTransform.rotation = Quaternion.Slerp(cameraTransform.rotation, targetRot, t);
-
-            //backgroundTransform.localScale = scale;
-            //yield return null;
+            camMain.transform.DORotateQuaternion(Quaternion.Euler(77.237f, 0, 180f), 1.0f);
         }
+        else
+        {
+            camMain.transform.DORotateQuaternion(Quaternion.Euler(77.237f, 0, 0), 1.0f);
+        }
+        
+        cameraFlip = !cameraFlip;
+        cameraFlipCount++;
+        Debug.Log("Count : " + cameraFlipCount);
+        scoreManager.Instance.checkWinner();
 
-        // After camera flip, set exact scale
+        // Flip background scale
+        Vector3 scale = backgroundTransform.localScale;
+        scale.x *= -1;
+        scale.y *= -1;
         backgroundTransform.localScale = scale;
 
-        // Manually set Y position
+        // Manually adjust background Y position
         Vector3 pos = backgroundTransform.localPosition;
-        pos.y = backgroundFlipped ? 177f : -177f;  // desired Y position
+        pos.y = backgroundFlipped ? 177f : -177f;
         backgroundTransform.localPosition = pos;
 
         backgroundFlipped = !backgroundFlipped;
 
         // Destroy old ball & pins
-        if (currentBall) Destroy(currentBall);
+        if (currentBall)
+            Destroy(currentBall);
         if (currentPins != null)
         {
             foreach (var pin in currentPins)
-                if (pin) Destroy(pin);
+                if (pin)
+                    Destroy(pin);
         }
 
         // Switch player
@@ -114,6 +122,4 @@ public class gameManager : MonoBehaviour
             currentPins[i] = Instantiate(pinPrefab, pinSpawns[i].position, pinSpawns[i].rotation);
         }
     }
-
 }
-
