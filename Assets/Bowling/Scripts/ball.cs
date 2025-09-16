@@ -58,7 +58,7 @@ public class ball : MonoBehaviour
             // Base direction from camera
             Vector3 forward =
                 gameManager.Instance.GetCurrentPlayer() == 0
-                    ? Vector3.back // Player 1 throws "backward"
+                    ? Vector3.forward // Player 1 throws "backward"
                     : Vector3.forward; // Player 2 throws "forward" after camera flip
 
             // Add some left/right curve based on swipe X
